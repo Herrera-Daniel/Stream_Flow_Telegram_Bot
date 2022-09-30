@@ -23,10 +23,21 @@ async fn main() {
     let bot = Bot::from_env().auto_send();
     teloxide::repl(bot, |message: Message, bot: AutoSend<Bot>| async move {
         let client = reqwest::Client::new();
-        let clear_creek_url = format!("https://dwr.state.co.us/Rest/GET/api/v2/surfacewater/surfacewatertsday/?format=json&abbrev=CLEGOLCO&min-measDate=-2days");
-        let res = client.get(&clear_creek_url).send().await?;
-        let flow: Flow = res.json().await?;
-        bot.send_message(message.chat.id, flow.ResultList[0].value.to_string()).await?;
-        respond(())
+        let message_text = message.text().unwrap();
+        if message_text.eq("!flow") {
+            println!("{:}", message_text);
+            let clear_creek_url = format!("https://dwr.state.co.us/Rest/GET/api/v2/surfacewater/surfacewatertsday/?format=json&abbrev=CLEGOLCO&min-measDate=-2days");
+            let res = client.get(&clear_creek_url).send().await?;
+            let flow: Flow = res.json().await?;
+            let response = format!("Clear Creek at Golden: {} cfs", flow.ResultList[0].value.to_string());
+            bot.send_message(message.chat.id, response).await?;
+            respond(())
+        } else {
+            bot.send_message(message.chat.id, "Only valid commands please.
+
+Ex.
+!flow <Stream/River name>").await?;
+            respond(())
+        }
     }).await;
 }
