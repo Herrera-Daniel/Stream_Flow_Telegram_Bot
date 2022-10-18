@@ -15,6 +15,17 @@ the [Instantaneous Values Web Service](https://waterservices.usgs.gov/rest/)
 
 # Supported Commands
 
-/help - Displays available commands
-/flow (stream name) - retrieves relevant flows for specified stream if supported
-/streams - Displays supported streams
+/help - Displays available commands <br/>
+/flow (stream name) - retrieves relevant flows for specified stream if
+supported<br/>
+/streams - Displays supported streams<br/>
+
+# Supported Streams
+
+Bear Creek (Morrison)<br/>
+Big Thompson (Below Lake Estes)<br/>
+Blue River (Above/Below Lake Dillon, Below Green Mountain Reservoir)<br/>
+Clear Creek (Golden)<br/>
+South Platte (Above Spinney, Dream Stream, Below 11 Mile Reservoir, Below
+Cheeseman Reservoir, Deckers, North Fork Confluence, Below Strontia
+Reservoir)<br/>
