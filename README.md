@@ -1,6 +1,6 @@
 # Stream_Flow_Telegram_Bot
 
-A simple telegram bot that looks up streamflows in Colorado. In this first
+A simple telegram bot poorly written in rust that looks up streamflows in Colorado. In this first
 version I had two main goals.
 
 1. Learn a little rust.
