@@ -41,17 +41,6 @@ struct FlowValue {
     value: String,
 }
 
-#[derive(Deserialize, Debug)]
-struct Station {
-    ResultList: Vec<StationDetails>,
-}
-
-#[derive(Deserialize, Debug)]
-struct StationDetails {
-    station_name: String,
-    abbrev: String,
-}
-
 #[tokio::main]
 async fn main() {
     println!("We in here bruh");
@@ -66,9 +55,9 @@ async fn main() {
 enum Command {
     #[command(description = "Display this text")]
     Help,
-    #[command(description = "Get the flows for a river or stream. (/Streams) To get streams.")]
+    #[command(description = "Get the flows for a supported river or stream")]
     Flow(String),
-    #[command(description = "Get the currently supported Streams.")]
+    #[command(description = "Get the currently supported Streams")]
     Streams,
 }
 
@@ -78,30 +67,40 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
         Command::Flow(stream) => {
             let client = reqwest::Client::new();
             match stream.trim().to_lowercase().as_str() {
-                "clear creek" => {
+                "clear creek" | "cc" => {
                     let res = client.get("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=06719505&parameterCd=00060,00065&siteType=ST&siteStatus=all").send().await?;
                     let flow: USGS_Flow = res.json().await?;
-                    bot.send_message(msg.chat.id, format!("Clear Creek: \nGolden: {:} cfs", &flow.value.timeSeries[0].values[0].value[0].value)).await?
+                    bot.send_message(msg.chat.id, format!("Clear Creek \nGolden: {:} cfs", &flow.value.timeSeries[0].values[0].value[0].value)).await?
                 }
-                "south platte" => {
+                "south platte" | "sp" => {
                     let res1 = client.get("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=06701900&parameterCd=00060,00065&siteType=ST&siteStatus=all").send().await?;
                     let res2 = client.get("https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrystation/?format=jsonforced&abbrev=PLABRUCO%2CPLASPICO%2CPLAHARCO%2CPLAGEOCO%2CPLACHECO%2CPLASPLCO%2CPLASTRCO").send().await?;
                     let deckers_flow: USGS_Flow = res1.json().await?;
                     let south_platte_flows: DWR_Flow = res2.json().await?;
-                    bot.send_message(msg.chat.id, format!("South Platte: \nAbove Spinney: {aboveSpinney} cfs \nDream Stream: {dreamStream} cfs \nBelow Eleven Mile: {belowElevenMile} cfs \nBelow Cheeseman: {belowCheeseman} cfs \nDeckers: {deckers} cfs \nNorth Fork Confluence: {northForkCon} cfs \nBelow Strontia: {belowStrontia} cfs",
+                    bot.send_message(msg.chat.id, format!("South Platte \nAbove Spinney: {aboveSpinney} cfs \nDream Stream: {dreamStream} cfs \nBelow Eleven Mile: {belowElevenMile} cfs \nBelow Cheeseman: {belowCheeseman} cfs \nDeckers: {deckers} cfs \nNorth Fork Confluence: {northForkCon} cfs \nBelow Strontia: {belowStrontia} cfs",
                                                           aboveSpinney = south_platte_flows.ResultList[3].measValue, dreamStream = south_platte_flows.ResultList[2].measValue, belowElevenMile = south_platte_flows.ResultList[1].measValue, belowCheeseman = south_platte_flows.ResultList[0].measValue, deckers = deckers_flow.value.timeSeries[0].values[0].value[0].value, northForkCon = south_platte_flows.ResultList[4].measValue, belowStrontia = south_platte_flows.ResultList[5].measValue)).await?
                 }
-                "big thompson" | "big t" => {
+                "big thompson" | "big t" | "bt" => {
                     let res = client.get("https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrystation/?format=jsonforced&abbrev=BTBLESCO").send().await?;
                     let flow: DWR_Flow = res.json().await?;
-                    bot.send_message(msg.chat.id, format!("Big Thompson: \nBelow Lake Estes: {:} cfs", &flow.ResultList[0].measValue)).await?
+                    bot.send_message(msg.chat.id, format!("Big Thompson \nBelow Lake Estes: {:} cfs", &flow.ResultList[0].measValue)).await?
+                }
+                "bear creek" | "bc" => {
+                    let res = client.get("https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrystation/?format=jsonforced&abbrev=BCRMORCO").send().await?;
+                    let flow: DWR_Flow = res.json().await?;
+                    bot.send_message(msg.chat.id, format!("Bear Creek \nMorrison: {:} cfs", &flow.ResultList[0].measValue)).await?
+                }
+                "blue river" | "br" => {
+                    let res = client.get("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09046600,09050700,09057500&parameterCd=00060,00065&siteStatus=all").send().await?;
+                    let flow: USGS_Flow = res.json().await?;
+                    bot.send_message(msg.chat.id, format!("Blue River \nAbove Dillon: {aboveDillon} cfs\nBelow Dillon: {belowDillon} cfs\nBelow Green Mountain: {belowGrnMtn} cfs", aboveDillon = flow.value.timeSeries[0].values[0].value[0].value, belowDillon = flow.value.timeSeries[2].values[0].value[0].value, belowGrnMtn = flow.value.timeSeries[4].values[0].value[0].value)).await?
                 }
                 _ => {
                     bot.send_message(msg.chat.id, format!("No data found, use /streams to see supported streams.")).await?
                 }
             }
         }
-        Command::Streams => bot.send_message(msg.chat.id, "Clear Creek\nSouth Platte\nBig Thompson").await?,
+        Command::Streams => bot.send_message(msg.chat.id, "Big Thompson\nBear Creek\nBlue River\nClear Creek\nSouth Platte").await?,
     };
 
     Ok(())
